@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request
-from functions import initialize_conversation, initialize_conv_reco, get_chat_model_completions, moderation_check,intent_confirmation_layer,dictionary_present,compare_laptops_with_user,recommendation_validation
+from functions import initialize_conversation, initialize_conv_reco, get_chat_model_completions, moderation_check,intent_confirmation_layer,dictionary_present,compare_laptops_with_user,recommendation_validation, compare_function_calling
 
 import openai
 import ast
@@ -69,10 +69,12 @@ def invite():
                 return redirect(url_for('end_conv'))
 
             conversation_bot.append({'bot':"Thank you for providing all the information. Kindly wait, while I fetch the products: \n"})
-            top_3_laptops = compare_laptops_with_user(response)
+            #top_3_laptops = compare_laptops_with_user(response)
+            ## Lets call user defined function calling.
+            top_3_laptops = compare_function_calling(response)
 
             validated_reco = recommendation_validation(top_3_laptops)
-
+            
             if len(validated_reco) == 0:
                 conversation_bot.append({'bot':"Sorry, we do not have laptops that match your requirements. Connecting you to a human expert. Please end this conversation."})
 

@@ -74,6 +74,9 @@ def initialize_conversation():
 
 
 def get_chat_model_completions(messages):
+    #messages += ["Please format the code with ordered list."]
+    print("format")
+    print(messages)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
@@ -87,7 +90,7 @@ def get_chat_model_completions(messages):
 def moderation_check(user_input):
     print("moderation_check ....hanu")
     print(user_input)
-    time.sleep(20)
+    time.sleep(22)
     response = openai.Moderation.create(input=user_input)
     print(response["results"])
     moderation_output = response["results"][0].flagged
@@ -217,15 +220,25 @@ def extract_dictionary_from_string(string):
 
         # Convert the dictionary string to a dictionary object using ast.literal_eval()
         dictionary = ast.literal_eval(dictionary_string)
-    return dictionary
+        return dictionary
 
 
-
-
-def compare_laptops_with_user(user_req_string):
+def compare_laptops_with_user(user_req_object):
     laptop_df= pd.read_csv('updated_laptop.csv')
-    user_requirements = extract_dictionary_from_string(user_req_string)
-    budget = int(user_requirements.get('budget', '0').replace(',', '').split()[0])
+    print("test hanuhh")
+    #print(json.loads(user_req_string))
+    #user_requirements = extract_dictionary_from_string(user_req_string)
+    
+
+    dictionary_string = str(user_req_object).lower()
+    print(dictionary_string)
+    dictionary = ast.literal_eval(dictionary_string)
+    #user_requirements = extract_dictionary_from_string(json.loads(user_req_string))
+    user_requirements = dictionary
+    print("progressinve hanu")
+    print(user_requirements)
+    budget = int(user_requirements.get('budget', '0').replace(',', ' ').split()[0])
+    print(budget)
     #This line retrieves the value associated with the key 'budget' from the user_requirements dictionary.
     #If the key is not found, the default value '0' is used.
     #The value is then processed to remove commas, split it into a list of strings, and take the first element of the list.
@@ -250,13 +263,14 @@ def compare_laptops_with_user(user_req_string):
         user_product_match_str = row['laptop_feature']
         laptop_values = extract_dictionary_from_string(user_product_match_str)
         score = 0
-
+        print("inside for loop")
         for key, user_value in user_requirements.items():
             if key.lower() == 'budget':
                 continue  # Skip budget comparison
             laptop_value = laptop_values.get(key, None)
             laptop_mapping = mappings.get(laptop_value.lower(), -1)
             user_mapping = mappings.get(user_value.lower(), -1)
+            print("laptop mapping comp")
             if laptop_mapping >= user_mapping:
                 ### If the laptop value is greater than or equal to the user value the score is incremented by 1
                 score += 1
@@ -266,9 +280,85 @@ def compare_laptops_with_user(user_req_string):
     # Sort the laptops by score in descending order and return the top 5 products
     top_laptops = filtered_laptops.drop('laptop_feature', axis=1)
     top_laptops = top_laptops.sort_values('Score', ascending=False).head(3)
-
+    print("response records json")
+    print(top_laptops.to_json(orient='records'))
     return top_laptops.to_json(orient='records')
 
+def compare_function_calling(user_req_object):
+    user_req_object = dictionary_present(user_req_object)
+    # Step 1: send the conversation and available functions to the model
+    messages = [{"role": "user", "content": user_req_object}]
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "compare_laptops_with_user",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "GPU intensity": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "Display quality": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "Portability": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "Multitasking": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "Processing speed": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        "Budget": {
+                            "type": "string",
+                            "description": "The city and state, e.g. San Francisco, CA",
+                        },
+                        
+                    },
+                    "required": ["user_req_object"],
+                },
+            },
+        }
+    ]
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto",  # auto is default, but we'll be explicit
+    )
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+    # Step 2: check if the model wanted to call a function
+    
+    if tool_calls:
+        # Step 3: call the function
+        # Note: the JSON response may not always be valid; be sure to handle errors
+        available_functions = {
+            "compare_laptops_with_user": compare_laptops_with_user,
+        }  # only one function in this example, but you can have multiple
+        messages.append(response_message)  # extend conversation with assistant's reply
+        # Step 4: send the info for each function call and function response to the model
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_to_call = available_functions[function_name]
+            function_args = json.loads(tool_call.function.arguments)
+            function_response = function_to_call(
+                #user_req_string=function_args.get("user_req_string"),
+                user_req_object=function_args,
+                
+            )
+            
+    print("funct resp")   
+    print(function_response)    
+    return function_response
 
 
 
@@ -289,11 +379,12 @@ def initialize_conv_reco(products):
     You are an intelligent laptop gadget expert and you are tasked with the objective to \
     solve the user queries about any product from the catalogue: {products}.\
     You should keep the user profile in mind while answering the questions.\
-
     Start with a brief summary of each laptop in the following format, in decreasing order of price of laptops:
-    1. <Laptop Name> : <Major specifications of the laptop>, <Price in Rs>
-    2. <Laptop Name> : <Major specifications of the laptop>, <Price in Rs>
-
+    1. <Laptop Name > : <Major specifications of the laptop > ,  <Price in Rs > \n
+    2. <Laptop Name > : <Major specifications of the laptop > ,  <Price in Rs > \n
+    
     """
+    #1. <Laptop Name> : <Major specifications of the laptop>, <Price in Rs>
+    #2. <Laptop Name> : <Major specifications of the laptop>, <Price in Rs>
     conversation = [{"role": "system", "content": system_message }]
     return conversation
