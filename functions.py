@@ -88,7 +88,7 @@ def get_chat_model_completions(messages):
 
 
 def moderation_check(user_input):
-    print("moderation_check ....hanu")
+    print("moderation_check ....")
     print(user_input)
     time.sleep(22)
     response = openai.Moderation.create(input=user_input)
@@ -225,7 +225,7 @@ def extract_dictionary_from_string(string):
 
 def compare_laptops_with_user(user_req_object):
     laptop_df= pd.read_csv('updated_laptop.csv')
-    print("test hanuhh")
+    print("test debug statement")
     #print(json.loads(user_req_string))
     #user_requirements = extract_dictionary_from_string(user_req_string)
     
@@ -235,7 +235,7 @@ def compare_laptops_with_user(user_req_object):
     dictionary = ast.literal_eval(dictionary_string)
     #user_requirements = extract_dictionary_from_string(json.loads(user_req_string))
     user_requirements = dictionary
-    print("progressinve hanu")
+    print("debug statements")
     print(user_requirements)
     budget = int(user_requirements.get('budget', '0').replace(',', ' ').split()[0])
     print(budget)
