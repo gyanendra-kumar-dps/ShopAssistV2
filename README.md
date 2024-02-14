@@ -1,6 +1,3 @@
+Project Report: https://medium.com/@rajriteshchandra/chatbot-using-gen-ai-open-ai-1-09a2cdb89165
 
-
-<img width="1440" alt="Screenshot 2024-02-06 at 10 39 09 PM" src="ShopAssist V2.jpg">
-
-
-<img width="1440" alt="Screenshot 2024-02-06 at 10 39 09 PM" src="https://github.com/gyanendra-kumar-dps/ShopAssistV2/assets/134352474/825dd56f-f8da-4872-b4c2-e86d366f5807">
+Code repository : https://github.com/gyanendra-kumar-dps/ShopAssistV2
