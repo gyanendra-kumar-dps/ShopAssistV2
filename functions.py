@@ -134,27 +134,27 @@ check_dictionary_functions = [
             'properties': {
                 'GPU intensity': {
                     'type': 'string',
-                    'description': 'Name of the person'
+                    'description': 'GPU requirement good for ML.'
                 },
                 'Display quality': {
                     'type': 'string',
-                    'description': 'Major subject.'
+                    'description': 'Dsiplay quality 4k , led, graphics.'
                 },
                 'Portability': {
                     'type': 'string',
-                    'description': 'The university name.'
+                    'description': 'Light weight good for travelling.'
                 },
                 'Multitasking': {
                     'type': 'string',
-                    'description': 'GPA of the student.'
+                    'description': 'Multo processor'
                 },
                 'Processing speed': {
                     'type': 'string',
-                    'description': 'School club for extracurricular activities. '
+                    'description': 'Processor speed. '
                 },
                 'Budget': {
                     'type': 'string',
-                    'description': 'School club for extracurricular activities. '
+                    'description': 'Budget for laptop. '
                 }
                 
             }
@@ -162,6 +162,8 @@ check_dictionary_functions = [
     }
     
 ]
+
+#check_dictionary_functions call this function for data extraction based on NLP query input.
 
 def dictionary_present(response):
     delimiter = "####"
@@ -222,7 +224,8 @@ def extract_dictionary_from_string(string):
         dictionary = ast.literal_eval(dictionary_string)
         return dictionary
 
-
+#This function can be extracted as a separate api call as well reading a datasource like
+# datbase . Right nnow it uses csv file for data source reading.
 def compare_laptops_with_user(user_req_object):
     laptop_df= pd.read_csv('updated_laptop.csv')
     print("test debug statement")
@@ -284,6 +287,8 @@ def compare_laptops_with_user(user_req_object):
     print(top_laptops.to_json(orient='records'))
     return top_laptops.to_json(orient='records')
 
+#This is function calling api for open ai api. It will call function compare_laptops_with_user
+# to load read data form csb files and extract information in a designated format.
 def compare_function_calling(user_req_object):
     user_req_object = dictionary_present(user_req_object)
     # Step 1: send the conversation and available functions to the model
@@ -299,27 +304,27 @@ def compare_function_calling(user_req_object):
                     "properties": {
                         "GPU intensity": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "GPU requirement",
                         },
                         "Display quality": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "Disoplay qualidy HD, 4K etc",
                         },
                         "Portability": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "Low weight which should be good for portability.",
                         },
                         "Multitasking": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "Multi threading cpu requirements. Ram",
                         },
                         "Processing speed": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "CPU processor speed",
                         },
                         "Budget": {
                             "type": "string",
-                            "description": "The city and state, e.g. San Francisco, CA",
+                            "description": "Budget for laptops",
                         },
                         
                     },
